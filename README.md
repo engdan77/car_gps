@@ -59,5 +59,5 @@ Pictures
 ![Main Board](https://github.com/engdan77/edocargps/blob/master/pics/img1.jpg)
 
 *Monitor in car displaying the speed and distance each month*
-![Main Board](https://github.com/engdan77/edocargps/blob/master/pics/IMG_2_Schematic_Main_Board.jpg)
+![Main Board](https://github.com/engdan77/edocargps/blob/master/pics/img2.jpg)
 
