@@ -56,6 +56,9 @@ Configuration
 Pictures
 -------------------------
 *Installation of Raspberry Pi in the car with USB-GPS and electrical switch component to turn on when car is*
+![Main Board](https://github.com/engdan77/edocargps/blob/master/pics/img0.jpg)
+
+*Retrieve initial Time using GPS in the car*
 ![Main Board](https://github.com/engdan77/edocargps/blob/master/pics/img1.jpg)
 
 *Monitor in car displaying the speed and distance each month*
