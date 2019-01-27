@@ -1,4 +1,4 @@
-edoCarGps
+car_gps
 ==============
 
 Background
@@ -26,16 +26,16 @@ Installation
 1) Make sure you have gpsd and required modules installed
 	sudo apt-get install python gpsd gpsd-clients
 2) Download required python script
-	git clone https://github.com/engdan77/edocargps.git
+	git clone https://github.com/engdan77/car_gps.git
 3) Update options in configuration
-	vi edoCarGps.py
+	vi car_gps.py
 
 ----------------------
 Command Line Arguments
 ----------------------
 
 ```
-usage: ./edoCarGps.sh
+usage: ./car_gps.sh
 ```
 
 
@@ -56,11 +56,11 @@ Configuration
 Pictures
 -------------------------
 *Installation of Raspberry Pi in the car with USB-GPS and electrical switch component to turn on when car is*
-![Main Board](https://github.com/engdan77/edocargps/blob/master/pics/img0.jpg)
+![Main Board](https://github.com/engdan77/car_gps/blob/master/pics/img0.jpg)
 
 *Retrieve initial Time using GPS in the car*
-![Main Board](https://github.com/engdan77/edocargps/blob/master/pics/img1.jpg)
+![Main Board](https://github.com/engdan77/car_gps/blob/master/pics/img1.jpg)
 
 *Monitor in car displaying the speed and distance each month*
-![Main Board](https://github.com/engdan77/edocargps/blob/master/pics/img2.jpg)
+![Main Board](https://github.com/engdan77/car_gps/blob/master/pics/img2.jpg)
 

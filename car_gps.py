@@ -14,12 +14,7 @@ global sync_complete
 sync_complete = "False"
 
 # Kivy specific
-from kivy.uix.label import Label
-from kivy.graphics import Color, Rectangle
-from kivy.uix.scrollview import ScrollView
-from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.button import Button
 from kivy.properties import DictProperty, ObjectProperty, StringProperty
 from kivy.clock import Clock
 from kivy.lang import Builder
@@ -61,7 +56,7 @@ class GpsPoller(threading.Thread):
             self.gpsd.next()
 
 
-def edoGetCoord(objGPS, timeout=300):
+def get_coord(objGPS, timeout=300):
     import datetime
     from time import strptime
     import os
@@ -95,7 +90,7 @@ def edoGetCoord(objGPS, timeout=300):
         return varTime, varLat, varLon, varAlt, varSpeed
 
 
-def createDB(objFile, logObject):
+def create_db(objFile, logObject):
         ''' Creates database if necessary '''
         try:
             f = open(objFile)
@@ -127,7 +122,7 @@ def createDB(objFile, logObject):
         return oDB
 
 
-def createSyncDB(db_ip, db_user, db_pass, db_name, logObject):
+def create_sync_db(db_ip, db_user, db_pass, db_name, logObject):
         ''' Creates sync-database if necessary '''
         if edoTestSocket(db_ip, 3306, logObject) == 0:
             oDB = edoClassDB('mysql', (db_ip, '3306', db_user, db_pass, db_name), logObject)
@@ -145,7 +140,7 @@ def createSyncDB(db_ip, db_user, db_pass, db_name, logObject):
             return None
 
 
-def getDistToday(objDB):
+def get_dist_today(objDB):
     ''' Get todays distance stored in database '''
     import time
     dist = time.strftime("%Y-%m-%d")
@@ -158,7 +153,7 @@ def getDistToday(objDB):
         return 0
 
 
-def getDistBetween(objDB, start_date, end_date):
+def get_dist_between(objDB, start_date, end_date):
     ''' Get todays distance stored in database '''
 
     dist = objDB.sql('SELECT sum(dist) FROM cargps WHERE time BETWEEN "' + start_date + '" AND "' + end_date + '"')[0][0]
@@ -168,7 +163,7 @@ def getDistBetween(objDB, start_date, end_date):
         return 0
 
 
-def getNextTrip(objDB):
+def get_next_trip(objDB):
     ''' Get the last TripNo stored in database '''
     trip = objDB.sql('SELECT max(tripno) FROM cargps')[0][0]
     if trip is None:
@@ -177,7 +172,7 @@ def getNextTrip(objDB):
         return int(trip) + 1
 
 
-def getCurrentTrip(objDB):
+def get_current_trip(objDB):
     ''' Get the last TripNo stored in database '''
     trip = int(objDB.sql('SELECT max(tripno) FROM cargps')[0][0])
     if trip is None:
@@ -186,7 +181,7 @@ def getCurrentTrip(objDB):
         return trip
 
 
-def getNextSeq(objDB, trip):
+def get_next_seq(objDB, trip):
     ''' Get next sequence for trip '''
     seq = objDB.sql('SELECT max(seq) FROM cargps WHERE tripno = ' + str(trip))[0][0]
     if seq is None:
@@ -195,7 +190,7 @@ def getNextSeq(objDB, trip):
         return int(seq) + 1
 
 
-def getLastCoord(objDB):
+def get_last_coord(objDB):
     ''' Get the last coordinates '''
     return objDB.sql('SELECT * from cargps ORDER BY id DESC LIMIT 1')[0]
 
@@ -222,13 +217,13 @@ def getDist(lon1, lat1, lon2, lat2):
     return km * 1000
 
 
-def insertGps(objDB, tripno, *args):
+def insert_gps(objDB, tripno, *args):
     ''' Inserts GPS data to database '''
     # Check if any coordinates in the past
-    lastTrip = getLastCoord(objDB)[6]
+    lastTrip = get_last_coord(objDB)[6]
     if lastTrip == tripno:
-        lastLat = getLastCoord(objDB)[2]
-        lastLon = getLastCoord(objDB)[3]
+        lastLat = get_last_coord(objDB)[2]
+        lastLon = get_last_coord(objDB)[3]
         # Present coordinates
         curLat = args[1]
         curLon = args[2]
@@ -238,7 +233,7 @@ def insertGps(objDB, tripno, *args):
         dist = 0.0
 
     # Get next sequence
-    seq = getNextSeq(objDB, tripno)
+    seq = get_next_seq(objDB, tripno)
 
     objDB.insert('cargps', {'time': args[0],
                             'lat': args[1],
@@ -251,7 +246,7 @@ def insertGps(objDB, tripno, *args):
                             'sync': 'null'})
 
 
-def getRandomYoutubeURL(argURL):
+def get_random_youtube_url(argURL):
     ''' Get id of most popular youtube videos '''
     import re
     import random
@@ -438,25 +433,25 @@ class rootWidget(BoxLayout):
         # Create log object
         self.logObject = edoClassFileLogger('edoCarGps.log', 1, 5, 'DEBUG')
         # Create DB if needed
-        self.objDB = createDB('edoCarGps.sqlite', self.logObject)
+        self.objDB = create_db('edoCarGps.sqlite', self.logObject)
 
         # Get today year
         self.thisYear = edoGetDateTime().split('-')[0]
 
         # Get distance driven today
-        self.infoDict['today'] = round(getDistToday(self.objDB) / 1000)
+        self.infoDict['today'] = round(get_dist_today(self.objDB) / 1000)
         # Get total
-        self.infoDict['tot'] = round(getDistBetween(self.objDB, self.thisYear + '-01-01 00:00:00', str(int(self.thisYear) + 1) + '-01-01 00:00:00') / 1000)
+        self.infoDict['tot'] = round(get_dist_between(self.objDB, self.thisYear + '-01-01 00:00:00', str(int(self.thisYear) + 1) + '-01-01 00:00:00') / 1000)
 
         # Add driven km for all months this year
         for monthName, monthNum in (['jan', '01'], ['feb', '02'], ['mar', '03'], ['apr', '04'], ['may', '05'], ['jun', '06'], ['jul', '07'], ['aug', '08'], ['sep', '09'], ['oct', '10'], ['nov', '11'], ['dec', '12']):
             if monthName == 'dec':
-                self.infoDict[monthName] = round(getDistBetween(self.objDB, self.thisYear + '-' + monthNum + '-' + '01' + '00:00:00', str(int(self.thisYear) + 1) + '-' + str(int(monthNum) + 1).zfill(2) + '-' + '01' + '00:00:00') / 1000)
+                self.infoDict[monthName] = round(get_dist_between(self.objDB, self.thisYear + '-' + monthNum + '-' + '01' + '00:00:00', str(int(self.thisYear) + 1) + '-' + str(int(monthNum) + 1).zfill(2) + '-' + '01' + '00:00:00') / 1000)
             else:
-                self.infoDict[monthName] = round(getDistBetween(self.objDB, self.thisYear + '-' + monthNum + '-' + '01' + '00:00:00', self.thisYear + '-' + str(int(monthNum) + 1).zfill(2) + '-' + '01' + '00:00:00') / 1000)
+                self.infoDict[monthName] = round(get_dist_between(self.objDB, self.thisYear + '-' + monthNum + '-' + '01' + '00:00:00', self.thisYear + '-' + str(int(monthNum) + 1).zfill(2) + '-' + '01' + '00:00:00') / 1000)
 
         # Starting by get the next trip in local database
-        self.tripno = getNextTrip(self.objDB)
+        self.tripno = get_next_trip(self.objDB)
         self.logObject.log("Starting new Trip: " + str(self.tripno), 'INFO')
 
         # Create song object playing mp3
@@ -468,10 +463,10 @@ class rootWidget(BoxLayout):
         # Retrieve GPS
         objGPS = GpsPoller()
         # objGPS = None
-        gpsTime, self.infoDict['lat'], self.infoDict['lon'], alt, self.infoDict['speed'] = edoGetCoord(objGPS, 300)
+        gpsTime, self.infoDict['lat'], self.infoDict['lon'], alt, self.infoDict['speed'] = get_coord(objGPS, 300)
 
         # Get distance driven today
-        self.infoDict['today'] = round(getDistToday(self.objDB) / 1000)
+        self.infoDict['today'] = round(get_dist_today(self.objDB) / 1000)
 
         # Update info
         if self.last_youtube > 600 and self.slow_period > 12 and int(self.infoDict['speed']) <= 3 and YOUTUBE_ENABLE is True:
@@ -485,7 +480,7 @@ class rootWidget(BoxLayout):
                 print "Sync record: " + str(objSync[0])
 
         # Add present trip-data to local database
-        insertGps(self.objDB, self.tripno, gpsTime, self.infoDict['lat'], self.infoDict['lon'], alt, self.infoDict['speed'])
+        insert_gps(self.objDB, self.tripno, gpsTime, self.infoDict['lat'], self.infoDict['lon'], alt, self.infoDict['speed'])
 
 
         # Check if playing youtube
@@ -493,7 +488,7 @@ class rootWidget(BoxLayout):
             ## self.logObject.log("Killing song with pid: " + str(self.bgsong.pid), 'INFO')
             ## self.bgsong.kill()
             self.info_label.text = "Spelar youtube video"
-            self.playYoutube()
+            self.play_youtube()
             ## self.bgsong = edoProcess("/bin/sh", "-c", "while true; do omxplayer " + SONG + " ; done")
             ## self.logObject.log("Start playing background with pid: " + str(self.bgsong.pid), 'INFO')
             self.last_youtube = 0
@@ -506,7 +501,7 @@ class rootWidget(BoxLayout):
             self.slow_period = 0
 
 
-    def checkSyncYoutube(self, *args):
+    def check_sync_youtube(self, *args):
         # Check if sync is required
         self.logObject.log("MAIN :" + sync_counter, 'INFO')
         if (self.last_sync == 0 or self.last_sync > 10) and args[0][1] == "False":
@@ -520,26 +515,14 @@ class rootWidget(BoxLayout):
             if YOUTUBE_ENABLE is True and edoTestSocket(CHECK_IP, CHECK_PORT, self.logObject) == 0:
                 self.logObject.log("Will attempt to download youtube video", 'INFO')
                 self.info_label.text = "Laddar ned ny Youtube-video"
-                self.downloadYoutube()
+                self.download_youtube()
                 self.logObject.log("Completed download youtube video", 'INFO')
-            # If driven more than 3 km shutdown when arrive home
-            # if self.infoDict['today'] > 3:
-                # time.sleep(300)
-                # os.system("sudo shutdown -h now")
-
-        # For debug
-        # print "self sync: " + str(self.last_sync)
-        # print "today dist: " + str(self.infoDict['today'])
-        # print "last youtube: " + str(self.last_youtube)
-        # print "slow period: " + str(self.slow_period)
-        # print "sync_counter: " + sync_counter
-        # print "sync_complete: " + sync_complete
 
     def quit_callback(self):
         print("Avsluta")
         sys.exit(0)
 
-    def downloadYoutube(self):
+    def download_youtube(self):
         ''' Download new youtube '''
         import pexpect
 
@@ -549,7 +532,7 @@ class rootWidget(BoxLayout):
                 os.remove('./youtube.tmp')
             except OSError:
                 pass
-            youtubeId = getRandomYoutubeURL(URL)
+            youtubeId = get_random_youtube_url(URL)
             self.logObject.log('Start downloading ' + YOUTUBE_URL + youtubeId, 'INFO')
             expObj = edoExpect('./youtube-dl.py ' + YOUTUBE_URL + youtubeId + ' -o youtube.tmp', 300, self.logObject)
             result = expObj.expect(['100\%', pexpect.TIMEOUT, pexpect.EOF])
@@ -562,11 +545,11 @@ class rootWidget(BoxLayout):
                 self.logObject.log('Fail download', 'WARNING')
                 return 1
 
-    def playYoutube(self):
+    def play_youtube(self):
         ''' Play YouTube '''
         import pexpect
 
-        if self.downloadYoutube() == 0:
+        if self.download_youtube() == 0:
             self.logObject.log('Playing new video', 'INFO')
             expObj = edoExpect('omxplayer youtube.mp4', 3600, self.logObject)
             result = expObj.expect([pexpect.TIMEOUT, pexpect.EOF])
@@ -587,7 +570,7 @@ class rootWidget(BoxLayout):
             ''' Sync database to central repository '''
             if edoTestSocket(CHECK_IP, CHECK_PORT) == 0:
                 print 'Start sync central database'
-                self.objSyncDB = createSyncDB(SYNC_IP, SYNC_USER, SYNC_PASS, SYNC_DBNAME, self.logObject)
+                self.objSyncDB = create_sync_db(SYNC_IP, SYNC_USER, SYNC_PASS, SYNC_DBNAME, self.logObject)
                 self.objDB.sync(self.objSyncDB, self.objSync, 'cargps', 'sync', 'time', 'lat', 'lon', 'alt', 'speed', 'tripno', 'seq', 'dist')
                 print 'Sync complete'
                 return 0
@@ -603,7 +586,7 @@ class MyApp(App):
         mainApp = rootWidget()
         # Schedule to run every interval
         Clock.schedule_interval(partial(mainApp.update, sync_counter), 10)
-        Clock.schedule_interval(partial(mainApp.checkSyncYoutube, sync_counter), 10)
+        Clock.schedule_interval(partial(mainApp.check_sync_youtube, sync_counter), 10)
         return mainApp
 
 

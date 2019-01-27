@@ -20,7 +20,7 @@ class GpsPoller(threading.Thread):
             self.gpsd.next()
 
 
-def edoSetGpsTime(objGPS, timeout=300):
+def set_gps_time(objGPS, timeout=300):
     import datetime
     from time import strptime
     import os
@@ -70,9 +70,9 @@ def edoSetGpsTime(objGPS, timeout=300):
         return varTime, varLat, varLon, varAlt, varSpeed
 
 objGps = GpsPoller()
-result = edoSetGpsTime(objGps, 300)
+result = set_gps_time(objGps, 300)
 if result is None:
     time.sleep(120)
-    result = edoSetGpsTime(objGps, 300)
+    result = set_gps_time(objGps, 300)
 
 
